@@ -1,0 +1,1537 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Timing Wrestle Proto v14 + H-EVAL v0.2 + C-GROWTH HARD v0.2</title>
+<style>
+:root{
+--bg:#101010;
+--panel:#1c1c1c;
+--line:#f2f2f2;
+--muted:#aaa;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+margin:0;
+background:var(--bg);
+color:white;
+font-family:system-ui,sans-serif;
+display:flex;
+justify-content:center;
+min-height:100vh;
+}
+#app{
+width:min(100vw,480px);
+padding:16px;
+}
+h1{
+font-size:18px;
+text-align:center;
+margin:0 0 12px;
+}
+.status{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:12px;
+}
+.card{
+background:var(--panel);
+border:2px solid white;
+border-radius:10px;
+padding:10px;
+}
+.label{
+font-size:12px;
+color:var(--muted);
+margin-bottom:6px;
+}
+.hp{
+font-size:26px;
+font-weight:800;
+}
+.hpbar{
+display:grid;
+grid-template-columns:repeat(10,1fr);
+gap:3px;
+margin-top:8px;
+}
+.chip{
+height:10px;
+border:1px solid white;
+background:white;
+}
+.chip.empty{
+background:transparent;
+}
+#message{
+background:black;
+border:2px solid white;
+border-radius:10px;
+padding:10px;
+min-height:60px;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
+margin-bottom:12px;
+font-weight:700;
+}
+.moves{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:8px;
+margin-bottom:12px;
+}
+.moveBtn{
+border:2px solid white;
+background:#222;
+color:white;
+border-radius:10px;
+padding:10px 6px;
+font-size:18px;
+font-weight:800;
+}
+.moveBtn.selected{
+background:white;
+color:black;
+}
+.rps{
+display:block;
+font-size:26px;
+margin-bottom:4px;
+}
+.vs{
+display:block;
+font-size:11px;
+line-height:1.3;
+margin-top:4px;
+color:#aaa;
+}
+.moveBtn.selected .vs{
+color:#333;
+}
+.meta{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-bottom:10px;
+}
+.mini{
+background:#181818;
+border:1px solid #777;
+border-radius:8px;
+padding:8px;
+font-size:13px;
+}
+.mini strong{
+display:block;
+font-size:18px;
+margin-top:2px;
+}
+#barPanel{
+background:var(--panel);
+border:2px solid white;
+border-radius:12px;
+padding:14px 12px 16px;
+}
+#bar{
+position:relative;
+height:38px;
+background:black;
+border:2px solid white;
+border-radius:8px;
+overflow:hidden;
+}
+.zone{
+position:absolute;
+top:0;
+height:100%;
+background:rgba(255,255,255,.22);
+border-left:2px solid white;
+border-right:2px solid white;
+}
+.perfect{
+position:absolute;
+top:0;
+height:100%;
+background:rgba(255,255,255,.42);
+border-left:2px solid white;
+border-right:2px solid white;
+}
+#cursor{
+position:absolute;
+top:-3px;
+width:8px;
+height:44px;
+background:white;
+border-radius:3px;
+}
+#tap{
+width:100%;
+height:72px;
+font-size:28px;
+font-weight:800;
+margin-top:10px;
+border-radius:10px;
+border:2px solid white;
+background:#222;
+color:white;
+}
+.small{
+margin-top:8px;
+text-align:center;
+font-size:12px;
+color:#888;
+}
+#log{
+margin-top:10px;
+font-size:13px;
+text-align:center;
+color:#ccc;
+min-height:38px;
+}
+
+#evalBox{
+  margin-top:10px;
+  background:#141414;
+  border:2px solid #ddd;
+  border-radius:10px;
+  padding:10px;
+}
+#evalTitle{
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:6px;
+}
+#evalScore{
+  font-size:24px;
+  font-weight:900;
+  line-height:1.25;
+}
+#evalSub{
+  font-size:13px;
+  color:#ccc;
+  margin-top:4px;
+  min-height:18px;
+}
+#evalDetail{
+  margin-top:6px;
+  font-size:12px;
+  color:#aaa;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+
+#matchLogBox{
+  margin-top:12px;
+  background:#111;
+  border:1px solid #777;
+  border-radius:10px;
+  padding:10px;
+}
+#matchLogTitle{
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:6px;
+}
+#matchLog{
+  width:100%;
+  height:120px;
+  background:#050505;
+  color:#ddd;
+  border:1px solid #555;
+  border-radius:8px;
+  padding:8px;
+  font-size:11px;
+  line-height:1.45;
+  resize:none;
+}
+#copyLogBtn,#clearLogBtn{
+  width:49%;
+  height:38px;
+  margin-top:8px;
+  font-size:14px;
+  letter-spacing:0;
+}
+
+#gongBtn{
+  width:100%;
+  height:58px;
+  margin-bottom:12px;
+  font-size:22px;
+  letter-spacing:.08em;
+}
+#restartBtn{
+  width:100%;
+  height:44px;
+  margin-top:8px;
+  font-size:15px;
+}
+
+#analysisBox{
+  margin-top:12px;
+  background:#111;
+  border:1px solid #777;
+  border-radius:10px;
+  padding:10px;
+}
+#analysisTitle{
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:6px;
+}
+#analysisData{
+  width:100%;
+  height:120px;
+  background:#050505;
+  color:#ddd;
+  border:1px solid #555;
+  border-radius:8px;
+  padding:8px;
+  font-size:11px;
+  line-height:1.45;
+  resize:none;
+}
+.analysisBtn{
+  width:49%;
+  height:38px;
+  margin-top:8px;
+  font-size:13px;
+  letter-spacing:0;
+}
+
+#saveJsonBtn{
+  width:100%;
+  height:40px;
+  margin-top:8px;
+  font-size:13px;
+  letter-spacing:0;
+}
+#growthBox{
+  margin-top:12px;
+  background:#111;
+  border:1px solid #777;
+  border-radius:10px;
+  padding:10px;
+}
+#growthTitle{
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:6px;
+}
+#growthMain{
+  font-size:18px;
+  font-weight:800;
+  margin-bottom:4px;
+}
+#growthSub,#growthBonus{
+  font-size:12px;
+  color:#ccc;
+  line-height:1.45;
+}
+#growthBar{
+  width:100%;
+  height:10px;
+  border:1px solid #777;
+  border-radius:6px;
+  margin:8px 0;
+  overflow:hidden;
+  background:#050505;
+}
+#growthFill{
+  height:100%;
+  width:0%;
+  background:white;
+}
+.growthBtn{
+  width:32%;
+  height:36px;
+  margin-top:8px;
+  font-size:12px;
+  letter-spacing:0;
+}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<h1>Timing Wrestle Proto v14 + 装置H/C HARD</h1>
+
+<div class="status">
+
+<div class="card">
+<div class="label">PLAYER</div>
+<div class="hp" id="pHpText">10</div>
+<div class="hpbar" id="pHpBar"></div>
+</div>
+
+<div class="card">
+<div class="label">CPU</div>
+<div class="hp" id="cHpText">10</div>
+<div class="hpbar" id="cHpBar"></div>
+</div>
+
+</div>
+
+<div id="message">
+GONGで試合開始
+</div>
+
+<button id="gongBtn" onclick="startMatch()">GONG</button>
+
+<div class="moves">
+
+<button class="moveBtn" id="btnStrike" onclick="selectMove('strike')">
+<span class="rps">👊</span>
+打撃
+<span class="vs">
+勝ち：関節<br>
+負け：投げ
+</span>
+</button>
+
+<button class="moveBtn" id="btnThrow" onclick="selectMove('throw')">
+<span class="rps">✋</span>
+投げ
+<span class="vs">
+勝ち：打撃<br>
+負け：関節
+</span>
+</button>
+
+<button class="moveBtn" id="btnJoint" onclick="selectMove('joint')">
+<span class="rps">✌️</span>
+関節
+<span class="vs">
+勝ち：投げ<br>
+負け：打撃
+</span>
+</button>
+
+</div>
+
+<div class="meta">
+
+<div class="mini">
+タイマー
+<strong id="timerText">3.0</strong>
+</div>
+
+<div class="mini">
+判定
+<strong id="judgeText">-</strong>
+</div>
+
+</div>
+
+<div id="barPanel">
+
+<div id="bar">
+<div id="goodZone" class="zone"></div>
+<div id="perfectZone" class="perfect"></div>
+<div id="cursor"></div>
+</div>
+
+<button id="tap" onclick="tapJudge()">TAP</button>
+
+<div class="small">
+v14 + 装置H v0.2 + 装置C HARD v0.2 / Lv1超弱体・自動保存
+</div>
+
+</div>
+
+<div id="log">
+同時出しイニシアチブチェック
+</div>
+
+<div id="evalBox">
+  <div id="evalTitle">装置H：試合評価</div>
+  <div id="evalScore">☆☆☆☆☆ / 0点</div>
+  <div id="evalSub">試合中は裏カード非公開。歓声で少しだけ分かる。</div>
+  <div id="evalDetail">GONG後に評価開始</div>
+</div>
+
+<div id="growthBox">
+  <div id="growthTitle">装置C：成長 / セーブ</div>
+  <div id="growthMain">Lv1 / EXP 0</div>
+  <div id="growthBar"><div id="growthFill"></div></div>
+  <div id="growthSub">次Lvまで -</div>
+  <div id="growthBonus">補正：GOOD 90.0% / 速度 110.0%</div>
+  <button class="growthBtn" onclick="saveProgressManual()">セーブ</button>
+  <button class="growthBtn" onclick="loadProgressManual()">ロード</button>
+  <button class="growthBtn" onclick="resetProgressConfirm()">初期化</button>
+</div>
+
+
+<div id="matchLogBox">
+  <div id="matchLogTitle">試合ログ</div>
+  <textarea id="matchLog" readonly></textarea>
+  <button id="copyLogBtn" onclick="copyMatchLog()">ログをコピー</button>
+  <button id="clearLogBtn" onclick="clearMatchLog()">消去</button>
+  <button id="restartBtn" onclick="showGong()">もう一度試合</button>
+</div>
+
+<div id="analysisBox">
+  <div id="analysisTitle">チャッピー確認用データ</div>
+  <textarea id="analysisData" readonly></textarea>
+  <button class="analysisBtn" onclick="makeAnalysisData()">分析データ作成</button>
+  <button class="analysisBtn" onclick="copyAnalysisData()">分析データコピー</button>
+  <button id="saveJsonBtn" onclick="saveAnalysisJson()">分析JSONを保存</button>
+</div>
+
+</div>
+
+
+<script>
+const SETTINGS = {
+  maxHp:10,
+  selectTime:3.0,
+
+  // v10 CORE
+  // UIはv5系固定。ここから先は基本システム調整用。
+  moves:{
+    strike:{ name:"打撃", icon:"👊", speed:5.0, good:95.76, perfect:30.6, joint:false },
+    throw:{ name:"投げ", icon:"✋", speed:5.6, good:63.27, perfect:21.6, joint:false },
+    joint:{ name:"関節", icon:"✌️", speed:6.6, good:95.76, perfect:25.2, joint:true, maxHold:3, shrink:0.78 }
+  },
+
+  // 打撃 > 関節 / 関節 > 投げ / 投げ > 打撃
+  beats:{
+    strike:"joint",
+    joint:"throw",
+    throw:"strike"
+  },
+
+  backSpeedBonus:1.10,
+  backPerfectShrink:0.90,
+
+  // v13 tuning
+  speedRandomMin:0.95,
+  speedRandomMax:1.05,
+  attackZoneShiftRatio:0.10,
+  backGoodShrink:0.90
+};
+
+let playerHp = SETTINGS.maxHp;
+let cpuHp = SETTINGS.maxHp;
+
+let phase = "select";
+
+let playerMove = null;
+let cpuMove = null;
+
+let activeMove = null;
+let activeSide = null; // player = 攻め判定 / cpu = 受け判定
+
+let timer = SETTINGS.selectTime;
+let timerLoop = null;
+
+let pos = 0;
+let dir = 1;
+let speed = 5;
+let speedMultiplier = 1.0;
+let anim = null;
+
+let tapped = false;
+
+let currentGood = 100;
+let currentPerfect = 30;
+
+let jointStep = 0;
+let jointMax = 0;
+
+let turnCount = 0;
+let matchLog = [];
+let analysisEvents = [];
+let matchStartedAt = null;
+
+let evalScore = 0;
+let evalLog = [];
+let evalBreakdown = {};
+let currentEval = null;
+let currentEvalTurn = null;
+let currentEvalFlags = null;
+let playerShowHistory = [];
+let lastEvalToast = "";
+
+const PROGRESS_SAVE_KEY = "timing_wrestle_progress_hard_v02";
+let progress = { level:1, exp:0, totalExp:0, popularity:0, matches:0, wins:0, losses:0 };
+
+const EVAL_SETTINGS = {
+  version:"v14_CORE_TUNE_H_EVAL_v0_2_C_GROWTH_HARD_v0_2",
+  sides:["player","cpu"],
+  cards:["strike","throw","joint","receive","perfect"],
+  sideLabels:{player:"PLAYER", cpu:"CPU"},
+  cardLabels:{strike:"打撃", throw:"投げ", joint:"関節", receive:"受け", perfect:"パーフェクト"},
+  points:{
+    perfect:2,
+    cardMatch:2,
+    cardMatchSpecial:3,
+    boo:-2,
+    win:5,
+    lose:2
+  },
+  ranks:[
+    {min:0, max:4, stars:"★☆☆☆☆", exp:20, pop:-1, label:"塩試合"},
+    {min:5, max:9, stars:"★★☆☆☆", exp:35, pop:0, label:"静かな試合"},
+    {min:10, max:16, stars:"★★★☆☆", exp:55, pop:1, label:"好試合"},
+    {min:17, max:25, stars:"★★★★☆", exp:80, pop:3, label:"名勝負"},
+    {min:26, max:999, stars:"★★★★★", exp:100, pop:5, label:"会場大熱狂"}
+  ]
+};
+
+const GROWTH_SETTINGS = {
+  maxLevel:30,
+  baseGoodMult:0.50,
+  baseSpeedMult:1.50,
+  perLevelGood:0.02,
+  perLevelSpeed:-0.02,
+  expBase:200,
+  expStep:100
+};
+
+function expToNext(level){
+  if(level >= GROWTH_SETTINGS.maxLevel) return 0;
+  return GROWTH_SETTINGS.expBase + (level - 1) * GROWTH_SETTINGS.expStep;
+}
+
+function getGrowthBonus(){
+  const lv = Math.max(1, Math.min(GROWTH_SETTINGS.maxLevel, progress.level || 1));
+  return {
+    goodMult: GROWTH_SETTINGS.baseGoodMult + (lv - 1) * GROWTH_SETTINGS.perLevelGood,
+    speedMult: GROWTH_SETTINGS.baseSpeedMult + (lv - 1) * GROWTH_SETTINGS.perLevelSpeed
+  };
+}
+
+function normalizeProgress(obj){
+  const base = { level:1, exp:0, totalExp:0, popularity:0, matches:0, wins:0, losses:0 };
+  const p = Object.assign(base, obj || {});
+  p.level = Math.max(1, Math.min(GROWTH_SETTINGS.maxLevel, parseInt(p.level,10) || 1));
+  p.exp = Math.max(0, parseInt(p.exp,10) || 0);
+  p.totalExp = Math.max(0, parseInt(p.totalExp,10) || 0);
+  p.popularity = parseInt(p.popularity,10) || 0;
+  p.matches = Math.max(0, parseInt(p.matches,10) || 0);
+  p.wins = Math.max(0, parseInt(p.wins,10) || 0);
+  p.losses = Math.max(0, parseInt(p.losses,10) || 0);
+  return p;
+}
+
+function renderGrowth(statusText){
+  const main = document.getElementById("growthMain");
+  if(!main) return;
+  const need = expToNext(progress.level);
+  const bonus = getGrowthBonus();
+  main.textContent = "Lv" + progress.level + " / EXP " + progress.exp + (need ? " / " + need : " / MAX");
+  document.getElementById("growthSub").textContent = statusText || (need ? "次Lvまで " + Math.max(0, need - progress.exp) + " / 人気 " + progress.popularity + " / 戦績 " + progress.wins + "勝" + progress.losses + "敗" : "MAX LEVEL / 人気 " + progress.popularity);
+  document.getElementById("growthBonus").textContent = "補正：GOOD " + (bonus.goodMult*100).toFixed(1) + "% / PERFECT " + (bonus.goodMult*100).toFixed(1) + "% / 速度 " + (bonus.speedMult*100).toFixed(1) + "%";
+  const fill = document.getElementById("growthFill");
+  fill.style.width = need ? Math.min(100, (progress.exp / need) * 100) + "%" : "100%";
+}
+
+function saveProgress(){
+  try{
+    localStorage.setItem(PROGRESS_SAVE_KEY, JSON.stringify(progress));
+  }catch(e){}
+}
+
+function loadProgress(){
+  try{
+    const raw = localStorage.getItem(PROGRESS_SAVE_KEY);
+    if(raw){
+      progress = normalizeProgress(JSON.parse(raw));
+    }else{
+      progress = normalizeProgress(progress);
+    }
+  }catch(e){
+    progress = normalizeProgress(progress);
+  }
+  renderGrowth();
+}
+
+function saveProgressManual(){
+  saveProgress();
+  renderGrowth("セーブしました / 人気 " + progress.popularity + " / 戦績 " + progress.wins + "勝" + progress.losses + "敗");
+  el.log.textContent = "成長データをセーブしました";
+}
+
+function loadProgressManual(){
+  loadProgress();
+  el.log.textContent = "成長データをロードしました";
+}
+
+function resetProgressConfirm(){
+  if(!confirm("成長データを初期化しますか？")) return;
+  progress = normalizeProgress({});
+  saveProgress();
+  renderGrowth("初期化しました");
+  el.log.textContent = "成長データを初期化しました";
+}
+
+function addExperience(exp, pop, result){
+  progress.matches += 1;
+  if(result === "WIN") progress.wins += 1;
+  if(result === "LOSE") progress.losses += 1;
+  progress.totalExp += exp;
+  progress.exp += exp;
+  progress.popularity += pop;
+
+  let levelUps = 0;
+  while(progress.level < GROWTH_SETTINGS.maxLevel){
+    const need = expToNext(progress.level);
+    if(progress.exp < need) break;
+    progress.exp -= need;
+    progress.level += 1;
+    levelUps += 1;
+  }
+
+  saveProgress();
+  const msg = levelUps ? "LvUP! +" + levelUps + " → Lv" + progress.level : "経験点+" + exp;
+  renderGrowth(msg + " / 人気" + (pop>=0?"+":"") + pop);
+  return { levelUps, level: progress.level, exp: progress.exp, next: expToNext(progress.level), popularity: progress.popularity };
+}
+
+
+function resetEval(){
+  evalScore = 0;
+  evalLog = [];
+  evalBreakdown = {};
+  currentEval = null;
+  currentEvalTurn = null;
+  currentEvalFlags = null;
+  playerShowHistory = [];
+  lastEvalToast = "";
+  renderEval();
+}
+
+function evalAdd(key, points, label){
+  evalScore += points;
+  evalBreakdown[key] = (evalBreakdown[key] || 0) + points;
+  const sign = points >= 0 ? "+" : "";
+  evalLog.push("T" + turnCount + " " + label + " " + sign + points);
+  lastEvalToast = label + " " + sign + points;
+  renderEval();
+}
+
+function drawEvalCard(){
+  currentEval = {
+    side: EVAL_SETTINGS.sides[Math.floor(Math.random()*EVAL_SETTINGS.sides.length)],
+    card: EVAL_SETTINGS.cards[Math.floor(Math.random()*EVAL_SETTINGS.cards.length)]
+  };
+  currentEvalTurn = turnCount;
+  currentEvalFlags = {card:false, special:false, receive:false};
+  evalLog.push("T" + turnCount + " 裏カード：" + EVAL_SETTINGS.sideLabels[currentEval.side] + " + " + EVAL_SETTINGS.cardLabels[currentEval.card]);
+  renderEval();
+}
+
+function getEvalRank(score){
+  return EVAL_SETTINGS.ranks.find(r=>score>=r.min && score<=r.max) || EVAL_SETTINGS.ranks[0];
+}
+
+function renderEval(finalText){
+  if(!el.evalScore) return;
+  const rank = getEvalRank(evalScore);
+  el.evalScore.textContent = rank.stars + " / " + evalScore + "点";
+  el.evalSub.textContent = finalText || (lastEvalToast ? "歓声：" + lastEvalToast : "裏カード非公開：流れが合うと歓声UP");
+  const lines = Object.keys(evalBreakdown).map(k=>{
+    const label = {
+      perfect:"パーフェクト",
+      cardMatch:"カード一致",
+      cardMatchSpecial:"カード一致スペシャル",
+      receive:"受け",
+      boo:"ブーイング",
+      win:"勝利",
+      lose:"敗北"
+    }[k] || k;
+    const v = evalBreakdown[k];
+    return label + " " + (v>=0?"+":"") + v;
+  });
+  el.evalDetail.textContent = lines.length ? lines.join(" / ") : "まだ評価なし";
+}
+
+function finishEval(result){
+  if(result === "WIN") evalAdd("win", EVAL_SETTINGS.points.win, "勝利");
+  if(result === "LOSE") evalAdd("lose", EVAL_SETTINGS.points.lose, "敗北");
+  const rank = getEvalRank(evalScore);
+  const growth = addExperience(rank.exp, rank.pop, result);
+  const lvText = growth.levelUps ? " / LvUP→Lv" + growth.level : " / Lv" + growth.level;
+  renderEval(rank.label + " / 経験点+" + rank.exp + " / 人気" + (rank.pop>=0?"+":"") + rank.pop + lvText);
+  addSystemLog("試合評価：" + rank.stars + " / " + evalScore + "点 / 経験点+" + rank.exp + " / 人気" + (rank.pop>=0?"+":"") + rank.pop + " / " + rank.label + lvText);
+}
+
+function scorePlayerShow(tag){
+  // 同じ見せ方3連続で軽いブーイング。ペナルティは強すぎない-2。
+  playerShowHistory.push(tag);
+  if(playerShowHistory.length >= 3){
+    const a = playerShowHistory[playerShowHistory.length-1];
+    const b = playerShowHistory[playerShowHistory.length-2];
+    const c = playerShowHistory[playerShowHistory.length-3];
+    if(a===b && b===c){
+      evalAdd("boo", EVAL_SETTINGS.points.boo, "ブーイング：同じ見せ方3連続");
+      // 4連続以降で毎回ブーイングしすぎないよう、履歴を少し切る
+      playerShowHistory = [tag];
+    }
+  }
+}
+
+function scoreMoveCard(side, moveKey){
+  if(!currentEval || !currentEvalFlags || currentEvalTurn !== turnCount) return;
+  if(currentEvalFlags.card) return;
+  if(currentEval.side === side && currentEval.card === moveKey){
+    currentEvalFlags.card = true;
+    evalAdd("cardMatch", EVAL_SETTINGS.points.cardMatch, "カード一致 " + EVAL_SETTINGS.sideLabels[side] + "+" + EVAL_SETTINGS.cardLabels[moveKey]);
+  }
+}
+
+function scorePerfect(side){
+  evalAdd("perfect", EVAL_SETTINGS.points.perfect, "パーフェクト");
+  if(!currentEval || !currentEvalFlags || currentEvalTurn !== turnCount) return;
+  if(currentEvalFlags.special) return;
+  if(currentEval.side === side && currentEval.card === "perfect"){
+    currentEvalFlags.special = true;
+    evalAdd("cardMatchSpecial", EVAL_SETTINGS.points.cardMatchSpecial, "カード一致＋パーフェクト");
+  }
+}
+
+function scoreReceive(side, label){
+  if(!currentEval || !currentEvalFlags || currentEvalTurn !== turnCount) return;
+  if(currentEvalFlags.receive) return;
+  if(currentEval.side === side && currentEval.card === "receive"){
+    currentEvalFlags.receive = true;
+    evalAdd("cardMatchSpecial", EVAL_SETTINGS.points.cardMatchSpecial, "カード一致＋受け（" + label + "）");
+  }
+}
+
+const el = {
+  msg:document.getElementById("message"),
+  timer:document.getElementById("timerText"),
+  judge:document.getElementById("judgeText"),
+  good:document.getElementById("goodZone"),
+  perfect:document.getElementById("perfectZone"),
+  cursor:document.getElementById("cursor"),
+  bar:document.getElementById("bar"),
+  log:document.getElementById("log"),
+  evalScore:document.getElementById("evalScore"),
+  evalSub:document.getElementById("evalSub"),
+  evalDetail:document.getElementById("evalDetail"),
+  matchLog:document.getElementById("matchLog"),
+  analysisData:document.getElementById("analysisData"),
+  gongBtn:document.getElementById("gongBtn"),
+
+  pHpText:document.getElementById("pHpText"),
+  cHpText:document.getElementById("cHpText"),
+  pHpBar:document.getElementById("pHpBar"),
+  cHpBar:document.getElementById("cHpBar"),
+
+  buttons:{
+    strike:document.getElementById("btnStrike"),
+    throw:document.getElementById("btnThrow"),
+    joint:document.getElementById("btnJoint")
+  }
+};
+
+
+function addMatchLog(text){
+  const line = "T" + turnCount + " " + text;
+  matchLog.push(line);
+  analysisEvents.push({
+    turn: turnCount,
+    text: text,
+    playerHp: playerHp,
+    cpuHp: cpuHp,
+    time: new Date().toISOString()
+  });
+  el.matchLog.value = matchLog.join("\n");
+  el.matchLog.scrollTop = el.matchLog.scrollHeight;
+}
+
+function addSystemLog(text){
+  matchLog.push(text);
+  analysisEvents.push({
+    turn: null,
+    text: text,
+    playerHp: playerHp,
+    cpuHp: cpuHp,
+    time: new Date().toISOString()
+  });
+  el.matchLog.value = matchLog.join("\n");
+  el.matchLog.scrollTop = el.matchLog.scrollHeight;
+}
+
+function copyMatchLog(){
+  const text = el.matchLog.value;
+  if(!text) return;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text);
+  }else{
+    el.matchLog.select();
+    document.execCommand("copy");
+  }
+  el.log.textContent = "ログをコピーしました";
+}
+
+function clearMatchLog(){
+  matchLog = [];
+  analysisEvents = [];
+  el.matchLog.value = "";
+  el.analysisData.value = "";
+  turnCount = 0;
+  resetEval();
+  el.log.textContent = "ログを消去しました";
+}
+
+function buildSummary(){
+  const joined = matchLog.join("\n");
+
+  const count = (keyword) => (joined.match(new RegExp(keyword, "g")) || []).length;
+
+  return {
+    turns: turnCount,
+    playerHp: playerHp,
+    cpuHp: cpuHp,
+    result: cpuHp <= 0 ? "WIN" : playerHp <= 0 ? "LOSE" : "IN_PROGRESS",
+
+    moveSelect: {
+      strike: count("PLAYER:打撃"),
+      throw: count("PLAYER:投げ"),
+      joint: count("PLAYER:関節")
+    },
+
+    initiative: {
+      player: count("イニシアチブ：PLAYER"),
+      cpu: count("イニシアチブ：CPU"),
+      draw: count("イニシアチブ：あいこ")
+    },
+
+    judge: {
+      attackGoodOrPerfect: count("攻め判定") - count("攻め判定 .*MISS"),
+      defenseGood: count("受け判定 .*GOOD"),
+      defensePerfect: count("受け判定 .*PERFECT"),
+      miss: count("MISS"),
+      noInput: count("未入力")
+    },
+
+    damage: {
+      toCpu: count("CPU dmg1") + count("CPU dmg2") * 2,
+      toPlayer: count("PLAYER dmg1")
+    }
+  };
+}
+
+function makeAnalysisData(){
+  const data = {
+    version: EVAL_SETTINGS.version,
+    note: "このJSONはチャッピーがプレイ傾向を確認し、CPU傾向や調整案へ反映しやすくするための分析用データです。",
+    tuning: {
+      goodWidth: "v13比でさらに約5%縮小",
+      speedRandom: "各判定ごとに95%〜105%",
+      attackZone: "攻め判定も中央から最大10%ぶん微ズレ",
+      defenseZone: "受け判定は従来通りランダム位置"
+    },
+    createdAt: new Date().toISOString(),
+    matchStartedAt: matchStartedAt,
+    summary: buildSummary(),
+    matchEvaluation: { score: evalScore, rank: getEvalRank(evalScore), breakdown: evalBreakdown, log: evalLog },
+    growth: { progress: progress, bonus: getGrowthBonus(), expToNext: expToNext(progress.level) },
+    rawLog: matchLog,
+    events: analysisEvents
+  };
+
+  el.analysisData.value = JSON.stringify(data, null, 2);
+  el.analysisData.scrollTop = 0;
+  el.log.textContent = "分析データを作成しました";
+}
+
+function copyAnalysisData(){
+  if(!el.analysisData.value){
+    makeAnalysisData();
+  }
+
+  const text = el.analysisData.value;
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text);
+  }else{
+    el.analysisData.select();
+    document.execCommand("copy");
+  }
+
+  el.log.textContent = "分析データをコピーしました";
+}
+
+function saveAnalysisJson(){
+  if(!el.analysisData.value){
+    makeAnalysisData();
+  }
+
+  const blob = new Blob([el.analysisData.value], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const stamp = new Date().toISOString().replace(/[:.]/g,"-");
+  a.href = url;
+  a.download = "timing_wrestle_analysis_" + stamp + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  el.log.textContent = "分析JSONを保存しました";
+}
+
+
+function showGong(){
+  clearInterval(timerLoop);
+  stopBar();
+  phase = "ready";
+  playerHp = SETTINGS.maxHp;
+  cpuHp = SETTINGS.maxHp;
+  renderHp();
+  renderGrowth();
+  clearSelected();
+  setButtons(false);
+  el.gongBtn.style.display = "block";
+  el.msg.textContent = "GONGで試合開始";
+  el.judge.textContent = "-";
+  el.timer.textContent = "-";
+  el.log.textContent = "GONG待機";
+  resetEval();
+}
+
+
+function randomRange(min,max){
+  return min + Math.random() * (max - min);
+}
+
+function getMoveLabel(key){
+  return SETTINGS.moves[key] ? SETTINGS.moves[key].name : "-";
+}
+
+function init(){
+  loadProgress();
+  renderHp();
+  phase = "ready";
+  setButtons(false);
+  stopBar();
+  el.msg.textContent = "GONGで試合開始";
+  el.judge.textContent = "-";
+  el.timer.textContent = "-";
+  el.log.textContent = "GONG待機";
+  resetEval();
+}
+
+function startMatch(){
+  playerHp = SETTINGS.maxHp;
+  cpuHp = SETTINGS.maxHp;
+  turnCount = 0;
+  resetEval();
+  matchLog = [];
+  analysisEvents = [];
+  matchStartedAt = new Date().toISOString();
+  el.matchLog.value = "";
+  el.analysisData.value = "";
+  renderHp();
+  el.gongBtn.style.display = "none";
+  addSystemLog("試合開始：GONG");
+  el.msg.textContent = "GONG!";
+  setTimeout(startSelect, 550);
+}
+
+function startSelect(){
+  phase = "select";
+  el.gongBtn.style.display = "none";
+  playerMove = null;
+  cpuMove = null;
+  activeMove = null;
+  activeSide = null;
+  jointStep = 0;
+  jointMax = 0;
+
+  clearSelected();
+  setButtons(true);
+
+  el.msg.textContent = "3秒以内に技を選択";
+  el.judge.textContent = "-";
+  el.log.textContent = "暫定コアシステム v10";
+
+  stopBar();
+
+  timer = SETTINGS.selectTime;
+  clearInterval(timerLoop);
+
+  timerLoop = setInterval(()=>{
+    timer -= 0.1;
+
+    if(timer <= 0){
+      clearInterval(timerLoop);
+      cpuInitiativeByNoSelect();
+      return;
+    }
+
+    el.timer.textContent = timer.toFixed(1);
+  },100);
+
+  el.timer.textContent = timer.toFixed(1);
+}
+
+function cpuInitiativeByNoSelect(){
+  activeSide = "cpu";
+  activeMove = randomMove();
+
+  const m = SETTINGS.moves[activeMove];
+
+  turnCount += 1;
+  drawEvalCard();
+  scorePlayerShow("receive");
+  scoreReceive("player", "選択失敗");
+  addMatchLog("選択失敗 → CPUイニシアチブ:" + m.name);
+
+  el.msg.textContent = "選択失敗 → CPUイニシアチブ：" + m.icon + " " + m.name;
+  el.judge.textContent = "受け判定";
+
+  startDefenseJudge(activeMove);
+}
+
+function selectMove(move){
+  if(phase !== "select") return;
+
+  clearInterval(timerLoop);
+
+  turnCount += 1;
+  drawEvalCard();
+  scorePlayerShow(move);
+
+  playerMove = move;
+  cpuMove = randomMove();
+
+  clearSelected();
+  setButtons(false);
+  el.buttons[move].classList.add("selected");
+
+  initiativeCheck();
+}
+
+function randomMove(){
+  const list = ["strike","throw","joint"];
+  return list[Math.floor(Math.random()*list.length)];
+}
+
+function initiativeCheck(){
+  const p = SETTINGS.moves[playerMove];
+  const c = SETTINGS.moves[cpuMove];
+
+  el.msg.textContent = "PLAYER " + p.icon + " " + p.name + " / CPU " + c.icon + " " + c.name;
+  el.log.textContent = "イニシアチブチェック";
+  addMatchLog("選択 PLAYER:" + p.name + " / CPU:" + c.name);
+
+  if(playerMove === cpuMove){
+    phase = "pause";
+    el.log.textContent = "あいこ";
+    addMatchLog("イニシアチブ：あいこ");
+    setTimeout(startSelect,700);
+    return;
+  }
+
+  if(SETTINGS.beats[playerMove] === cpuMove){
+    addMatchLog("イニシアチブ：PLAYER");
+    setTimeout(()=>startAttackJudge(playerMove),500);
+  }else{
+    addMatchLog("イニシアチブ：CPU");
+    setTimeout(()=>startDefenseJudge(cpuMove),500);
+  }
+}
+
+function startAttackJudge(moveKey){
+  activeMove = moveKey;
+  activeSide = "player";
+
+  const m = SETTINGS.moves[activeMove];
+
+  if(m.joint){
+    jointStep = 1;
+    jointMax = m.maxHold;
+  }else{
+    jointStep = 0;
+    jointMax = 0;
+  }
+
+  setupJudgeBase();
+
+  el.msg.textContent = m.icon + " " + m.name + "：攻め判定";
+  el.judge.textContent = m.joint ? "攻め判定 " + jointStep + "/" + jointMax : "攻め判定";
+  el.log.textContent = (m.joint ? "関節：最大3回まで継続" : "攻め成功でCPUにダメージ") + " / 速度補正:" + speedMultiplier.toFixed(2);
+
+  startBar();
+}
+
+function startDefenseJudge(moveKey){
+  activeMove = moveKey;
+  activeSide = "cpu";
+
+  const m = SETTINGS.moves[activeMove];
+
+  if(m.joint){
+    jointStep = 1;
+    jointMax = m.maxHold;
+  }else{
+    jointStep = 0;
+    jointMax = 0;
+  }
+
+  setupJudgeBase();
+
+  el.msg.textContent = "CPU " + m.icon + " " + m.name + " → 受け判定";
+  el.judge.textContent = m.joint ? "受け判定 " + jointStep + "/" + jointMax : "受け判定";
+  el.log.textContent = (m.joint ? "CPU関節：最大3回まで受け判定" : "受けPERFECTでカウンター") + " / 速度補正:" + speedMultiplier.toFixed(2);
+
+  startBar();
+}
+
+function setupJudgeBase(){
+  phase = "judge";
+
+  const m = SETTINGS.moves[activeMove];
+
+  speedMultiplier = randomRange(SETTINGS.speedRandomMin, SETTINGS.speedRandomMax);
+  const growthBonus = getGrowthBonus();
+  speed = m.speed * speedMultiplier * growthBonus.speedMult;
+  currentGood = m.good * growthBonus.goodMult;
+  currentPerfect = m.perfect * growthBonus.goodMult;
+
+  // 関節の継続段階に応じて判定縮小
+  if(m.joint && jointStep > 1){
+    const scale = Math.pow(m.shrink, jointStep - 1);
+    currentGood *= scale;
+    currentPerfect *= scale;
+  }
+
+  if(activeSide === "player"){
+    layoutAttackZones();
+  }else{
+    layoutDefenseZones();
+  }
+}
+
+function layoutAttackZones(){
+  const center = el.bar.clientWidth / 2;
+  const left = center - currentGood / 2;
+
+  el.good.style.left = left + "px";
+  el.good.style.width = currentGood + "px";
+
+  updatePerfectForDirection();
+}
+
+function layoutDefenseZones(){
+  const width = el.bar.clientWidth;
+  const left = Math.random() * Math.max(1, width - currentGood);
+
+  el.good.style.left = left + "px";
+  el.good.style.width = currentGood + "px";
+
+  updatePerfectForDirection();
+}
+
+function updatePerfectForDirection(){
+
+  const baseLeft = parseFloat(el.good.style.left);
+  const baseWidth = currentGood;
+
+  let visibleGood = baseWidth;
+  let visiblePerfect = currentPerfect;
+
+  if(dir === -1){
+    visibleGood = baseWidth * SETTINGS.backGoodShrink;
+    visiblePerfect = currentPerfect * SETTINGS.backPerfectShrink;
+  }
+
+  const adjustedGoodLeft =
+    baseLeft + (baseWidth - visibleGood) / 2;
+
+  el.good.style.left = adjustedGoodLeft + "px";
+  el.good.style.width = visibleGood + "px";
+
+  const pLeft =
+    adjustedGoodLeft + visibleGood/2 - visiblePerfect/2;
+
+  el.perfect.style.left = pLeft + "px";
+  el.perfect.style.width = visiblePerfect + "px";
+}
+
+function startBar(){
+  stopBar();
+
+  tapped = false;
+  pos = 0;
+  dir = 1;
+  updatePerfectForDirection();
+
+  function loop(){
+    let currentSpeed = speed;
+
+    if(dir === -1){
+      currentSpeed *= SETTINGS.backSpeedBonus;
+    }
+
+    pos += currentSpeed * dir;
+
+    const max = el.bar.clientWidth - 8;
+
+    if(pos >= max){
+      pos = max;
+      dir = -1;
+      updatePerfectForDirection();
+    }
+    else if(pos <= 0){
+      if(!tapped){
+        noTapPenalty();
+        return;
+      }
+
+      pos = 0;
+      dir = 1;
+      updatePerfectForDirection();
+    }
+
+    el.cursor.style.left = pos + "px";
+    anim = requestAnimationFrame(loop);
+  }
+
+  loop();
+}
+
+function stopBar(){
+  if(anim) cancelAnimationFrame(anim);
+  anim = null;
+}
+
+function noTapPenalty(){
+  stopBar();
+
+  if(activeSide === "player"){
+    scorePlayerShow("receive");
+    scoreReceive("player", "攻めを譲る");
+    el.msg.textContent = "攻め失敗 → CPUイニシアチブ";
+    el.log.textContent = "入力なし";
+    addMatchLog("攻め未入力 → CPUイニシアチブ");
+    setTimeout(()=>startDefenseJudge(randomMove()),700);
+  }else{
+    scorePlayerShow("receive");
+    scoreReceive("player", "攻撃を受ける");
+    playerHp -= 1;
+    renderHp();
+    el.msg.textContent = "受け失敗 → PLAYERに1ダメ";
+    el.log.textContent = "入力なし";
+    addMatchLog("受け未入力 → PLAYER dmg1 / HP P" + playerHp + "-C" + cpuHp);
+    setTimeout(checkEndOrNext,700);
+  }
+}
+
+function tapJudge(){
+  if(phase !== "judge") return;
+
+  tapped = true;
+  stopBar();
+
+  const center = pos + 4;
+
+  const gLeft = parseFloat(el.good.style.left);
+  const gRight = gLeft + currentGood;
+
+  const pLeft = parseFloat(el.perfect.style.left);
+  const pRight = pLeft + parseFloat(el.perfect.style.width);
+
+  let result = "MISS";
+
+  if(center >= pLeft && center <= pRight){
+    result = "PERFECT";
+  }else if(center >= gLeft && center <= gRight){
+    result = "GOOD";
+  }
+
+  if(activeSide === "player"){
+    attackResult(result);
+  }else{
+    defenseResult(result);
+  }
+}
+
+function attackResult(result){
+  const m = SETTINGS.moves[activeMove];
+
+  if(result === "MISS"){
+    el.msg.textContent = m.joint ? "関節解除：攻め失敗" : "攻め失敗";
+    el.log.textContent = "ダメージなし → CPUイニシアチブ";
+    addMatchLog("攻め判定 " + m.name + "：MISS / dmg0");
+    setTimeout(()=>startDefenseJudge(randomMove()),700);
+    return;
+  }
+
+  scoreMoveCard("player", activeMove);
+  if(result === "PERFECT"){
+    scorePerfect("player");
+  }
+
+  let damage = result === "PERFECT" ? 2 : 1;
+  cpuHp -= damage;
+  renderHp();
+  addMatchLog("攻め判定 " + m.name + "：" + result + " / CPU dmg" + damage + " / HP P" + playerHp + "-C" + cpuHp);
+
+  if(m.joint && jointStep < jointMax){
+    el.msg.textContent = "関節 " + result + " → CPUに" + damage + "ダメ";
+    el.log.textContent = "関節継続";
+    jointStep += 1;
+    setTimeout(continueJointJudge,650);
+    return;
+  }
+
+  el.msg.textContent = m.name + " " + result + " → CPUに" + damage + "ダメ";
+  el.log.textContent = m.joint ? "関節終了" : "攻め成功";
+  setTimeout(checkEndOrNext,700);
+}
+
+function defenseResult(result){
+  const m = SETTINGS.moves[activeMove];
+
+  scoreMoveCard("cpu", activeMove);
+  scoreReceive("player", "攻撃を受ける");
+
+  if(result === "MISS"){
+    playerHp -= 1;
+    renderHp();
+    addMatchLog("受け判定 " + m.name + "：MISS / PLAYER dmg1 / HP P" + playerHp + "-C" + cpuHp);
+
+    if(m.joint && jointStep < jointMax){
+      el.msg.textContent = "関節受け失敗 → PLAYERに1ダメ";
+      el.log.textContent = "CPU関節継続";
+      jointStep += 1;
+      setTimeout(continueJointJudge,650);
+      return;
+    }
+
+    el.msg.textContent = "受け失敗 → PLAYERに1ダメ";
+    el.log.textContent = m.joint ? "関節終了" : "CPU攻撃成功";
+    setTimeout(checkEndOrNext,700);
+    return;
+  }
+
+  if(result === "PERFECT"){
+    scorePerfect("player");
+    if(m.joint){
+      el.msg.textContent = "関節の受けPERFECT → ダメージなし";
+      el.log.textContent = "関節技への受けはカウンターなし / 関節解除";
+      addMatchLog("受け判定 " + m.name + "：PERFECT / counterなし");
+    }else{
+      cpuHp -= 1;
+      renderHp();
+      addMatchLog("受け判定 " + m.name + "：PERFECT counter / CPU dmg1 / HP P" + playerHp + "-C" + cpuHp);
+      el.msg.textContent = "受けPERFECT返し → CPUに1ダメ";
+      el.log.textContent = "カウンター成立";
+    }
+  }else{
+    el.msg.textContent = "受け成功";
+    el.log.textContent = m.joint ? "関節解除" : "ダメージなし";
+    addMatchLog("受け判定 " + m.name + "：GOOD / dmg0");
+  }
+
+  setTimeout(checkEndOrNext,700);
+}
+
+function continueJointJudge(){
+  if(cpuHp <= 0 || playerHp <= 0){
+    checkEndOrNext();
+    return;
+  }
+
+  setupJudgeBase();
+
+  const m = SETTINGS.moves[activeMove];
+
+  if(activeSide === "player"){
+    el.msg.textContent = m.icon + " " + m.name + "：攻め判定";
+    el.judge.textContent = "攻め判定 " + jointStep + "/" + jointMax;
+  }else{
+    el.msg.textContent = "CPU " + m.icon + " " + m.name + " → 受け判定";
+    el.judge.textContent = "受け判定 " + jointStep + "/" + jointMax;
+  }
+
+  startBar();
+}
+
+function checkEndOrNext(){
+  if(cpuHp <= 0){
+    phase = "end";
+    el.msg.textContent = "WIN";
+    el.log.textContent = "試合終了";
+    finishEval("WIN");
+    addSystemLog("試合終了：WIN / HP P" + playerHp + "-C" + cpuHp);
+    setButtons(false);
+    return;
+  }
+
+  if(playerHp <= 0){
+    phase = "end";
+    el.msg.textContent = "LOSE";
+    el.log.textContent = "試合終了";
+    finishEval("LOSE");
+    addSystemLog("試合終了：LOSE / HP P" + playerHp + "-C" + cpuHp);
+    setButtons(false);
+    return;
+  }
+
+  startSelect();
+}
+
+function renderHp(){
+  playerHp = Math.max(0, playerHp);
+  cpuHp = Math.max(0, cpuHp);
+
+  el.pHpText.textContent = playerHp;
+  el.cHpText.textContent = cpuHp;
+
+  renderHpBar(el.pHpBar,playerHp);
+  renderHpBar(el.cHpBar,cpuHp);
+}
+
+function renderHpBar(target,hp){
+  target.innerHTML = "";
+
+  for(let i=0;i<SETTINGS.maxHp;i++){
+    const div = document.createElement("div");
+    div.className = "chip";
+
+    if(i >= hp){
+      div.classList.add("empty");
+    }
+
+    target.appendChild(div);
+  }
+}
+
+function clearSelected(){
+  Object.values(el.buttons).forEach(b=>b.classList.remove("selected"));
+}
+
+function setButtons(bool){
+  Object.values(el.buttons).forEach(b=>b.disabled = !bool);
+}
+
+window.addEventListener("resize",()=>{
+  if(phase !== "judge") return;
+
+  if(activeSide === "player"){
+    layoutAttackZones();
+  }else{
+    layoutDefenseZones();
+  }
+});
+
+init();
+</script>
+
+
+</body>
+</html>
